@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -47,27 +48,27 @@ func main() {
 		fmt.Fprintf(os.Stderr, "usage: %s <path-to-yaml>\n", os.Args[0])
 		os.Exit(1)
 	}
-	filename := os.Args[1]
+	fullPath := os.Args[1]
 
-	data, err := os.ReadFile(filename)
+	data, err := os.ReadFile(fullPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: cannot read file: %v\n", filename, err)
+		fmt.Fprintf(os.Stderr, "%s: cannot read file: %v\n", fullPath, err)
 		os.Exit(1)
 	}
 
 	var root yaml.Node
 	if err := yaml.Unmarshal(data, &root); err != nil {
-		fmt.Fprintf(os.Stderr, "%s: cannot unmarshal file content: %v\n", filename, err)
+		fmt.Fprintf(os.Stderr, "%s: cannot unmarshal file content: %v\n", fullPath, err)
 		os.Exit(1)
 	}
 
 	if len(root.Content) == 0 {
-		fmt.Fprintf(os.Stderr, "%s: YAML parse error: empty document\n", filename)
+		fmt.Fprintf(os.Stderr, "%s: YAML parse error: empty document\n", fullPath)
 		os.Exit(1)
 	}
 	doc := root.Content[0]
 
-	ctx := &vctx{file: filename}
+	ctx := &vctx{file: filepath.Base(fullPath)}
 	validateTop(ctx, doc)
 
 	exitCode := ctx.flush()
