@@ -79,7 +79,12 @@ func main() {
 
 	ctx := &vctx{file: filename}
 	validateTop(ctx, doc)
-	os.Exit(ctx.flush())
+
+	exitCode := ctx.flush()
+
+	_ = os.Stderr.Sync()
+
+	os.Exit(exitCode)
 }
 
 func validateTop(ctx *vctx, n *yaml.Node) {
