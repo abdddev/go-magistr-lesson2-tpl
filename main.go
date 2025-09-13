@@ -34,9 +34,9 @@ func (c *vctx) flush() int {
 	}
 	for _, e := range c.errs {
 		if e.line > 0 {
-			fmt.Fprintf(os.Stderr, "%s:%d %s\n", c.file, e.line, e.msg)
+			fmt.Fprintf(os.Stdout, "%s:%d %s\n", c.file, e.line, e.msg)
 		} else {
-			fmt.Fprintf(os.Stderr, "%s: %s\n", c.file, e.msg)
+			fmt.Fprintf(os.Stdout, "%s: %s\n", c.file, e.msg)
 		}
 	}
 	return 1
@@ -72,7 +72,7 @@ func main() {
 
 	exitCode := ctx.flush()
 
-	_ = os.Stderr.Sync()
+	_ = os.Stdout.Sync()
 
 	os.Exit(exitCode)
 }
