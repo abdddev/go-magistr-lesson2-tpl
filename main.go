@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -33,15 +32,6 @@ func (c *vctx) flush() int {
 	if len(c.errs) == 0 {
 		return 0
 	}
-	sort.Slice(c.errs, func(i, j int) bool {
-		if c.errs[i].line == 0 {
-			return false
-		}
-		if c.errs[j].line == 0 {
-			return true
-		}
-		return c.errs[i].line < c.errs[j].line
-	})
 	for _, e := range c.errs {
 		if e.line > 0 {
 			fmt.Fprintf(os.Stderr, "%s:%d %s\n", c.file, e.line, e.msg)
@@ -114,6 +104,13 @@ func validateTop(ctx *vctx, n *yaml.Node) {
 		}
 	}
 
+	spec, ok := field(n, "spec")
+	if !ok {
+		ctx.addRequired("spec")
+	} else {
+		validateSpec(ctx, spec)
+	}
+
 	meta, ok := field(n, "metadata")
 	if !ok {
 		ctx.addRequired("metadata")
@@ -121,11 +118,8 @@ func validateTop(ctx *vctx, n *yaml.Node) {
 		validateMetadata(ctx, meta)
 	}
 
-	spec, ok := field(n, "spec")
-	if !ok {
-		ctx.addRequired("spec")
-	} else {
-		validateSpec(ctx, spec)
+	if spec != nil {
+		validateSpecContainers(ctx, spec)
 	}
 }
 
@@ -185,7 +179,9 @@ func validateSpec(ctx *vctx, n *yaml.Node) {
 			}
 		}
 	}
+}
 
+func validateSpecContainers(ctx *vctx, n *yaml.Node) {
 	containers, ok := field(n, "containers")
 	if !ok {
 		ctx.addRequired("containers")
